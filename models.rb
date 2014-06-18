@@ -37,14 +37,14 @@ class Address
 	property :town, 									String,  :required => true
 	property :dependent_locality, 		String
 	property :dbl_dependent_locality, String
-	property :thoroughfare, 					String
+	property :thoroughfare, 					String,  :length   => 81
 	property :dependent_thoroughfare, String 
 	property :building_number, 				Integer
 	property :building_name, 					String
 	property :sub_building_name, 			String
 	property :households, 						Integer
-	property :department, 						String
-	property :organisation, 					String
+	property :department, 						String,  :length   => 60
+	property :organisation, 					String,  :length   => 60
 	property :postcode_type, 					String
 	property :concat_indicator, 			String
 	property :small_user_indicator, 	String

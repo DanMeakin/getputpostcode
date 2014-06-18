@@ -4,6 +4,7 @@ require 'sinatra'
 require 'data_mapper'
 require 'dm-migrations'
 require 'yaml'
+require 'csv'
 require_relative 'models'
 
 CONFIG  = YAML.load_file('config/config.yaml')
@@ -61,7 +62,21 @@ get '/postcode' do
       {'Content-Type' => 'text/json'}, 
       { :error => ERRORS['empty-params'] }.to_json
   end
-  Address.all(Hash[params.map { |k, v| [k.to_sym.like, "%#{v}%"] }]).to_json
+  road_keys = [:thoroughfare, :dependent_thoroughfare]
+  town_keys = [:town, :dependent_locality, :dbl_dependent_locality]
+  road = params.delete("road")
+  town = params.delete("town")
+  query = Hash[params.map { |k, v| [k.to_sym.like, "%#{v}%"] }]
+  results = Array.new
+  road_keys.each do |road_key|
+   query = query.merge({ road_key.like => "%#{road}%" })
+   results += Address.all(query)
+  end
+  town_keys.each do |town_key|
+    query = query.merge({ town_key.like => "%#{town}%" })
+    results += Address.all(query)
+  end
+  results.to_json
 end
 
 post '/update' do
@@ -76,7 +91,7 @@ post '/update' do
   params.each do |field, value|
     if address.respond_to? field
       if integer_fields.include?(field.to_sym)
-        value = value.to_i
+        value = (value.nil? || value.empty?) ? nil : value.to_i
       end
       record_parameters.update({ field.to_sym => value })
     else
@@ -125,4 +140,42 @@ put '/update/:id' do
   end
 end
 
+get '/load-paf' do
+  paf_path = "#{Dir.pwd}/data/PAF.csv"
+  csvfile = if File.exist?(paf_path)
+              File.open(paf_path)
+            else
+              halt 404,
+                { 'Content-Type' => 'text/json' },
+                { :error => ERRORS['missing-paf'] }.to_json
+            end
+  keys = 	[:postcode, :town, :dependent_locality, :dbl_dependent_locality, 
+           :thoroughfare, :dependent_thoroughfare, :building_number,
+           :building_name, :sub_building_name, :households, :department, 
+           :organisation, :id, :postcode_type, :concat_indicator, 
+           :small_user_indicator, :delivery_point_suffix]
+  record_count = 0
+  CSV.open(csvfile) do |csv|
+    csv.each do |line|
+      params = Hash[keys.zip(line)]
+      record_params = Hash.new
+      integer_fields    = [:id, :building_number, :households]
+      params.each do |field, value|
+        if integer_fields.include?(field.to_sym)
+          value = (value.nil? || value.empty?) ? nil : value.to_i
+        end
+        record_params.update({ field.to_sym => value })
+      end
+      result = Address.first_or_create({ :id => record_params[:id] },
+                                       record_params)
+      if result.save
+        puts record_params
+        record_count += 1
+      else
+        raise "Unable to save! (#{record_params}"
+      end
+    end
+  end
+  { :records_saved => record_count }.to_json
+end
 
