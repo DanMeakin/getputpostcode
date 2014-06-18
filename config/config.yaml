@@ -1,0 +1,15 @@
+# Global configuration file for Papi.
+
+# API Key required to communicate with Papi.
+api-key: "j7HCfPNIFSlxmEzITrEEasAoUr2gs7B3tdCWExx1"
+
+# Error messages used throughout the app.
+error-messages:
+  # Message to display where insufficient search params passed
+  empty-params: "Address search parameters must be specified"
+  # Message to display where invalid param passed
+  invalid-param: "Invalid parameter specified"
+  # Message to display where no params passed for update
+  empty-update: "Parameters required for update"
+  # Message to display on save error
+  save-error: "Unable to save record"
