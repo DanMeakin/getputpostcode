@@ -24,7 +24,7 @@ class AddressFormatter
   
     # Begin with department, organisation & PO Box number, if applicable.
     [:department, :organisation, :po_box].each do |key|
-      addr_lines << "#{address[key]}\n" unless address[key].nil? || address[key].empty?
+      addr_lines << "#{address[key]}\n" unless address[key].to_s.empty?
     end
     # Format building name/number components.
     addr_lines   << format_building(*[:sub_building_name, 
@@ -35,7 +35,11 @@ class AddressFormatter
     [:dependent_thoroughfare, :thoroughfare, 
      :dbl_dependent_locality, :dependent_locality, 
      :town,                   :postcode].each do |key|
-       addr_lines << "#{address[key]}\n" unless address[key].nil? || address[key].empty?
+       if key == :town
+         addr_lines << "#{address[key].upcase}\n"
+       else
+         addr_lines << "#{address[key]}\n" unless address[key].to_s.empty?
+       end
      end
      addr_lines.strip
   end
@@ -57,9 +61,9 @@ class AddressFormatter
   def self.format_building(sub_name, name, number, concat)
     case
     # If name/numbers are empty, return an empty string.
-    when (sub_name.nil? || sub_name.empty?) && 
-         (name.nil? || name.empty?) && 
-         (number.nil? || number.empty?)
+    when (sub_name.to_s.empty?) && 
+         (name.to_s.empty?) && 
+         (number.to_s.empty?)
       return ""
     # If concatenation indicator, then just concat and return.
     when concat == "Y"
@@ -68,17 +72,22 @@ class AddressFormatter
     # Define exception to the usual rule requiring a newline for the building 
     # name. See p. 27 of PAF Guide for further information.
     building_str = ""
-    exception    = /^\d.*\d$|^\d.*\d[A-Za-z]$|^.$/
+    exception    = /^\d.*\d$|^\d.*\d[A-Za-z]$|^\d[A-Za-z]$|^.$/
     [sub_name, name].reject { |x| x.nil? }.each do |component|
       if component =~ exception
         building_str << component
         building_str << (component =~ /^[[:alpha:]]$/ ? ", " : " ")
       else
         # Check if final portion of string is numeric/alphanumeric. If so, 
-        # split and apply exception to that section only.
-        parts = component.split(' ')
-        final = parts.pop
-        if final =~ exception && number.nil? && final !~ /^\d*$/
+        # split and apply exception to that section only. However, don't do 
+        # this if the name has specific prefix.
+        prefixes  = ['Back of', 'Block', 'Blocks', 'Building', 'Maisonette', 
+                     'Maisonettes', 'Rear Of', 'Shop', 'Shops', 'Stall', 
+                     'Stalls', 'Suite', 'Suites', 'Unit', 'Units']
+        parts     = component.split(' ')
+        final     = parts.pop
+        if final =~ exception && number.nil? && final !~ /^\d*$/ && 
+           !prefixes.include?(parts.join(' '))
           building_str << "#{parts.join(' ')}\n#{final} "
         else
           building_str << "#{component}\n"
