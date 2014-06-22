@@ -42,7 +42,7 @@ class Address
 	property :building_number, 				Integer
 	property :building_name, 					String
 	property :sub_building_name, 			String
-	property :households, 						Integer
+	property :po_box, 						    Integer
 	property :department, 						String,  :length   => 60
 	property :organisation, 					String,  :length   => 60
 	property :postcode_type, 					String

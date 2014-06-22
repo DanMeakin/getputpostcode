@@ -6,6 +6,7 @@ require 'dm-migrations'
 require 'yaml'
 require 'csv'
 require_relative 'models'
+require_relative 'helper'
 
 CONFIG  = YAML.load_file('config/config.yaml')
 API_KEY = CONFIG['api-key']
@@ -30,7 +31,7 @@ before do
 end
 
 get '/' do
-  "Welcome to Papi!"
+  "Welcome to GetPutPostcode!"
 end
 
 get '/address' do
@@ -39,20 +40,7 @@ get '/address' do
       {'Content-Type' => 'text/json'}, 
       { :error => ERRORS['empty-params'] }.to_json 
   end
-  road_keys = [:thoroughfare, :dependent_thoroughfare]
-  town_keys = [:town, :dependent_locality, :dbl_dependent_locality]
-  road = params.delete("road")
-  town = params.delete("town")
-  query = Hash[params.map { |k, v| [k.to_sym.like, "%#{v}%"] }]
-  results = Array.new
-  road_keys.each do |road_key|
-   query = query.merge({ road_key.like => "%#{road}%" })
-   results += Address.all(query)
-  end
-  town_keys.each do |town_key|
-    query = query.merge({ town_key.like => "%#{town}%" })
-    results += Address.all(query)
-  end
+  results = make_query(params)
   results.to_json
 end
 
@@ -62,20 +50,7 @@ get '/postcode' do
       {'Content-Type' => 'text/json'}, 
       { :error => ERRORS['empty-params'] }.to_json
   end
-  road_keys = [:thoroughfare, :dependent_thoroughfare]
-  town_keys = [:town, :dependent_locality, :dbl_dependent_locality]
-  road = params.delete("road")
-  town = params.delete("town")
-  query = Hash[params.map { |k, v| [k.to_sym.like, "%#{v}%"] }]
-  results = Array.new
-  road_keys.each do |road_key|
-   query = query.merge({ road_key.like => "%#{road}%" })
-   results += Address.all(query)
-  end
-  town_keys.each do |town_key|
-    query = query.merge({ town_key.like => "%#{town}%" })
-    results += Address.all(query)
-  end
+  results = make_query(params)
   results.to_json
 end
 
