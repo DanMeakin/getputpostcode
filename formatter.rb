@@ -67,7 +67,7 @@ class AddressFormatter
       return ""
     # If concatenation indicator, then just concat and return.
     when concat == "Y"
-      return "#{number || ''}#{sub_name.length > 1 ? ' ' : ''}#{sub_name} "
+      return "#{number || ''}#{!sub_name.nil? && sub_name.length > 1 ? ' ' : ''}#{sub_name} "
     end
     # Define exception to the usual rule requiring a newline for the building 
     # name. See p. 27 of PAF Guide for further information.

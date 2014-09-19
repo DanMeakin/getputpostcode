@@ -28,9 +28,9 @@ def make_query(params)
   query = Hash[params.map { |k, v| [k.to_sym.like, "%#{v}%"] }]
   { road_keys => road, town_keys => town }.each do |k, v|
     k.each do |key|
-      query = query.merge({ key.like => "%#{v}%" })
-      results += Address.all(query)
+      results += Address.all(query.merge({ key.like => "%#{v}%" }))
     end
   end
   results
 end
+
