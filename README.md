@@ -25,8 +25,8 @@ The address fields available to query against are:-
  * building_number
  * building_name
  * sub_building_name
- * households
+ * po_box
  * department
  * organisation
 
-Additionally, the "road" and "town" aliases are available for queries. If road is used, the query will select all records where the thoroughfare or dependent_thoroughfare contain road. If town is used, the query will select all records where the town, dependent_locality or dbl_dependent_locality contain town.
+Additionally, the "road" and "town" aliases are available for queries. If road is used, the query will select all records where the thoroughfare or dependent_thoroughfare contain the value of road. If town is used, the query will select all records where the town, dependent_locality or dbl_dependent_locality contain the value of town.
